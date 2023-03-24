@@ -2,8 +2,11 @@ var worldDic = {
     0: "brick",
     1: "empty",
     2: "coin",
-    3: "cherry"
+    3: "cherry",
+    4: "ghost"
 }
+
+var ghostsClass = document.getElementsByClassName("ghost");
 
 var step = 20;
 var score = 0;
@@ -18,16 +21,23 @@ var path = 0;
 var gameSpeed = 400;
 var intervalId = setInterval(gameLoop, gameSpeed);
 var gameOverChk = setInterval(gameOver, gameSpeed/3);
-var numBricks = Math.floor(worldColumns * worldRows * (1-0.20)); // bricks are 20% of the world
+var bricksNum = Math.floor(worldColumns * worldRows * (1-0.20)); // bricks are 20% of the world
+var ghostNum = 3; //number of ghosts
 
 var pacmanPos = {
     x: 2,
     y: 2
 }
 
-var ghostPos = {
-    x: Math.floor(worldRows/2),
-    y: Math.floor(worldColumns/2)
+var ghostObj =[];
+for(var i=0; i<ghostNum; i++){
+    ghostObj.push({
+        x_i: Math.floor(worldRows/2) + randInt(-2, 2),
+        y_i: Math.floor(worldColumns/2)  + randInt(-2, 2),
+        x: Math.floor(worldRows/2) + randInt(-2, 2),
+        y: Math.floor(worldColumns/2)  + randInt(-2, 2),
+        _class: ghostsClass[i]
+    })
 }
 
 var ghostMove = [
@@ -43,6 +53,14 @@ var life = 3; //number of Pacman's lives
 
 function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+//Prevent ghosts from mixing - vip
+function isMixing(g1, g2) {
+    return g1.x < g2.x + g2._class.clientWidth &&
+        g1.x + g1._class.clientWidth > g2.x &&
+        g1.y < g2.y + g2._class.clientHeight &&
+        g1.y + g1._class.clientHeight > g2.y;
 }
 
 function randomWorld() {        
@@ -61,7 +79,7 @@ function randomWorld() {
     }
 
     // place some bricks
-    for (var i = 0; i < numBricks; i++) {
+    for (var i = 0; i < bricksNum; i++) {
         var x = Math.floor(Math.random() * worldColumns);
         var y = Math.floor(Math.random() * worldRows);
         while (world[y][x] > 1) {
@@ -98,7 +116,6 @@ function randomWorld() {
     return world;
 }
 
-
 world = randomWorld();
 worldColumns = world[0].length, worldRows = world.length; // world's dimension with border
 
@@ -113,10 +130,8 @@ function displayWorld() {
         }
         output += "</div>";
     }
-    
     document.getElementById("world").innerHTML = output;
 }
-
 
 function displayPacman() {
     document.getElementById("pacman").style.left = pacmanPos.x*step + "px";
@@ -124,36 +139,36 @@ function displayPacman() {
 }
 
 function ghostChase(){
-    var bestMove = 0, bestDistance = (worldColumns*worldRows)**2;
-    for (var m of ghostMove) {
-        var next = {
-            x: ghostPos.x + m.dx,
-            y: ghostPos.y + m.dy
-        };
-        
-        if(next.y > worldRows-1 || next.y < 0 || world[next.y][next.x] == 0){
-            continue;
+    for(var ghost of ghostObj){
+        var bestMove = 0, bestDistance = (worldColumns*worldRows)**2;
+    
+        moveFinder: for (var m of ghostMove) {
+            var next = {
+                x: ghost.x + m.dx,
+                y: ghost.y + m.dy
+            };
+            
+            if(next.y > worldRows-1 || next.y < 0 || world[next.y][next.x] == 0){
+                continue;
+            }
+            var dist = Math.sqrt((next.x - pacmanPos.x)**2 + (next.y - pacmanPos.y)**2);
+            if (dist < bestDistance) {
+                bestMove = m;
+                bestDistance = dist;
+            }
         }
+        ghost.x += bestMove.dx;
+        ghost.y += bestMove.dy;
 
-        var dist = Math.sqrt((next.x - pacmanPos.x)**2 + (next.y - pacmanPos.y)**2);
-        if (dist < bestDistance) {
-            bestMove = m;
-            bestDistance = dist;
-        }
+        ghost._class.style.left = ghost.x*step + "px";
+        ghost._class.style.top = ghost.y*step + "px"
     }
-        
-        ghostPos.x += bestMove.dx;
-        ghostPos.y += bestMove.dy;
-
-        document.getElementById("ghost").style.left = ghostPos.x*step + "px";
-        document.getElementById("ghost").style.top = ghostPos.y*step + "px";
     
 }
 
 displayWorld();
 displayPacman();
 ghostChase();
-
 
 document.addEventListener(
     "keydown",
@@ -222,29 +237,33 @@ function displayScore() {
 
 function gameOver(){
     // check if ghost caught Pacman 3 times
-    if(pacmanPos.y == ghostPos.y && pacmanPos.x == ghostPos.x){
-        life -= 1;
-        document.getElementById("lives").innerText = life;
-        if(life > 0){
-            pacmanPos = {
-                x: 2,
-                y: 2
+    for(ghost of ghostObj){
+        if(pacmanPos.y == ghost.y && pacmanPos.x == ghost.x){
+            life -= 1;
+            document.getElementById("lives").innerText = life;
+            if(life > 0){
+                pacmanPos = {
+                    x: 2,
+                    y: 2
+                }
+                for(ghost of ghostObj){
+                    ghost.x = ghost.x_i;
+                    ghost.y = ghost.y_i
+                }
             }
-            ghostPos = {
-                x: Math.floor(worldRows/2),
-                y: Math.floor(worldColumns/2)
-            }
+            else{
+                for (var i=0; i<ghostsClass.length; i++) {
+                    ghostsClass[i].parentNode.removeChild(ghostsClass[i]);
+                }
+                document.getElementsByClassName("ghost").remove;
+                document.getElementById("finalText").innerText = "GAME OVER";
+                document.getElementById("pacman").remove();
+                clearTimeout(intervalId);
+                clearTimeout(gameOverChk);
+            }       
+            displayPacman();
         }
-        else{
-            document.getElementById("ghost").remove();
-            document.getElementById("finalText").innerText = "GAME OVER";
-            document.getElementById("pacman").remove();
-            clearTimeout(intervalId);
-            clearTimeout(gameOverChk);
-        }       
-        displayPacman();
     }
-
     // check if Pacman ate all objects
     var s = 0;
     for (i=0; i<worldRows; i++){
@@ -255,7 +274,9 @@ function gameOver(){
         }
     }
     if(s < 2){
-        document.getElementById("ghost").remove();
+        while (ghostsClass.length > 0) {
+            ghostsClass[0].parentNode.removeChild(ghostsClass[0]);
+        }
         document.getElementById("finalText").innerText = "YOU WIN!";
         clearInterval(intervalId);
         clearTimeout(gameOverChk);
