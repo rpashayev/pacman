@@ -14,6 +14,8 @@ var worldColumns = 10, worldRows = 10; // world's dimension
 //Game settings
 var gameSpeed = 400;
 var intervalId = setInterval(gameLoop, gameSpeed);
+var gameOverChk = setInterval(gameOver, gameSpeed/3);
+
 
 var pacmanPos = {
     x: 1,
@@ -220,9 +222,6 @@ function gameOver(){
     }
 }
 
-
 function gameLoop(){
-    console.log(pacmanPos.y == 0, world[worldRows-1][pacmanPos.x] != 1);
-    gameOver();
     ghostChase();
 }
