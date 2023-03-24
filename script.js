@@ -181,7 +181,7 @@ document.addEventListener(
         //Up movement
         else if(e.code === "ArrowUp") {
             document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-u.gif)";
-            if(pacmanPos.y == 0 && world[worldRows-1][pacmanPos.x] != 1){
+            if(pacmanPos.y == 0 && world[worldRows-1][pacmanPos.x] != 0){
                 pacmanPos.y = worldRows-1;
             }
             else if(pacmanPos.y !=0 && world[pacmanPos.y-1][pacmanPos.x] != 0) {
@@ -225,14 +225,7 @@ function gameOver(){
     if(pacmanPos.y == ghostPos.y && pacmanPos.x == ghostPos.x){
         life -= 1;
         document.getElementById("lives").innerText = life;
-        if(life == 0){
-            document.getElementById("pacman").remove();
-            document.getElementById("ghost").remove();
-            document.getElementById("finalText").innerText = "GAME OVER";
-
-            clearInterval(intervalId);
-        }   
-        else{
+        if(life > 0){
             pacmanPos = {
                 x: 2,
                 y: 2
@@ -241,9 +234,17 @@ function gameOver(){
                 x: Math.floor(worldRows/2),
                 y: Math.floor(worldColumns/2)
             }
-            displayPacman();
         }
+        else{
+            document.getElementById("ghost").remove();
+            document.getElementById("finalText").innerText = "GAME OVER";
+            document.getElementById("pacman").remove();
+            clearTimeout(intervalId);
+            clearTimeout(gameOverChk);
+        }       
+        displayPacman();
     }
+
     // check if Pacman ate all objects
     var s = 0;
     for (i=0; i<worldRows; i++){
