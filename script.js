@@ -258,6 +258,7 @@ function gameOver(){
         document.getElementById("ghost").remove();
         document.getElementById("finalText").innerText = "YOU WIN!";
         clearInterval(intervalId);
+        clearTimeout(gameOverChk);
     }
 }
 
