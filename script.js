@@ -1,6 +1,6 @@
 var worldDic = {
-    0: "empty",
-    1: "brick",
+    0: "brick",
+    1: "empty",
     2: "coin",
     3: "cherry"
 }
@@ -9,22 +9,25 @@ var step = 20;
 var score = 0;
 
 var worldDictMin = 0, worldDictMax = 2; // objects #s from the worldDict dictionary
-var worldColumns = 10, worldRows = 10; // world's dimension
+var worldColumns = 14, worldRows = 14; // world's dimension
+
+var maze = [];
+var path = 0;
 
 //Game settings
 var gameSpeed = 400;
 var intervalId = setInterval(gameLoop, gameSpeed);
 var gameOverChk = setInterval(gameOver, gameSpeed/3);
-
+var numBricks = Math.floor(worldColumns * worldRows * (1-0.20)); // bricks are 20% of the world
 
 var pacmanPos = {
-    x: 1,
-    y: 1
+    x: 2,
+    y: 2
 }
 
 var ghostPos = {
-    x: worldRows-2,
-    y: worldColumns-2
+    x: Math.floor(worldRows/2),
+    y: Math.floor(worldColumns/2)
 }
 
 var ghostMove = [
@@ -43,27 +46,62 @@ function randInt(min, max) {
 }
 
 function randomWorld() {        
-        var world = [];
+    var world = [];
 
-        //randomize Cherry's coordinates. Started from 2 to be a bit far from Pacman
-        var cherryPosX = randInt(2, worldColumns-1);
-        var cherryPosY = randInt(2, worldColumns-1);
+    //randomize Cherry's coordinates. Started from 2 to be a bit far from Pacman
+    var cherryPosX = randInt(2, worldColumns-1);
+    var cherryPosY = randInt(2, worldColumns-1);
 
-        //randomize World
-        for(var x=0; x<worldColumns; x++){
-            world[x]=[];
-            for(var y=0; y<worldRows; y++){
-                world[x][y] = randInt(worldDictMin, worldDictMax);
-            }
+    //randomize World without bricks
+    for(var x=0; x<worldColumns; x++){
+        world[x]=[];
+        for(var y=0; y<worldRows; y++){
+            world[x][y] = randInt(worldDictMin, worldDictMax);
         }
-        
-    world[pacmanPos.x][pacmanPos.y] = 0; //clear Pacman initial position
+    }
+
+    // place some bricks
+    for (var i = 0; i < numBricks; i++) {
+        var x = Math.floor(Math.random() * worldColumns);
+        var y = Math.floor(Math.random() * worldRows);
+        while (world[y][x] > 1) {
+          // if the place is not empty , try again
+          x = Math.floor(Math.random() * worldColumns);
+          y = Math.floor(Math.random() * worldColumns);
+        }
+        world[y][x] = 1; // mark the cell as a brick
+    }
+
+    //add border
+        //right and left
+    for(var x=0; x<worldColumns; x++){
+        for(var y=0; y<worldRows; y+=worldColumns-1){
+            world[x][y] = 0;
+        }
+    }
+        //up and down
+    var border = [];
+    for(var x=0; x<worldColumns-1; x++){
+        border.push(0);
+    }
+    
+    border.splice(Math.floor(border.length/2),0,1); //create top and bottom tunnel
+    world[Math.floor(worldRows/2)][0] = 1; //left tunnel 
+    world[Math.floor(worldRows/2)][worldColumns-1] = 1; //right tunnel
+
+    world.splice(0,0,border); //up border
+    world.push(border);//down border
+    
     world[cherryPosX][cherryPosY] = 3; //Cherry position
+    world[pacmanPos.x][pacmanPos.y] = 1; //clear Pacman initial position
 
     return world;
 }
 
+
 world = randomWorld();
+worldColumns = world[0].length, worldRows = world.length; // world's dimension with border
+
 
 function displayWorld() {
     var output = "";
@@ -93,7 +131,7 @@ function ghostChase(){
             y: ghostPos.y + m.dy
         };
         
-        if(next.y > worldRows-1 || next.y < 0 || world[next.y][next.x] == 1){
+        if(next.y > worldRows-1 || next.y < 0 || world[next.y][next.x] == 0){
             continue;
         }
 
@@ -121,9 +159,9 @@ document.addEventListener(
     "keydown",
     function(e){
         //Left movement
-        if(e.code === "ArrowLeft" && world[pacmanPos.y][pacmanPos.x-1] != 1) {
+        if(e.code === "ArrowLeft" && world[pacmanPos.y][pacmanPos.x-1] != 0) {
             document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-l.gif)";
-            if(pacmanPos.x == 0 && world[pacmanPos.y][worldColumns-1] != 1){
+            if(pacmanPos.x == 0 && world[pacmanPos.y][worldColumns-1] != 0){
                 pacmanPos.x = worldColumns - 1;
             }
             else if (pacmanPos.x > 0){
@@ -131,9 +169,9 @@ document.addEventListener(
             }
         }
         //Right movement
-        else if(e.code === "ArrowRight" && world[pacmanPos.y][pacmanPos.x+1] != 1) {
+        else if(e.code === "ArrowRight" && world[pacmanPos.y][pacmanPos.x+1] != 0) {
             document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-r.gif)";
-            if(pacmanPos.x == worldColumns-1 && world[pacmanPos.y][0] != 1){
+            if(pacmanPos.x == worldColumns-1 && world[pacmanPos.y][0] != 0){
                 pacmanPos.x = 0;
             }
             else if (pacmanPos.x < worldColumns-1){
@@ -146,29 +184,29 @@ document.addEventListener(
             if(pacmanPos.y == 0 && world[worldRows-1][pacmanPos.x] != 1){
                 pacmanPos.y = worldRows-1;
             }
-            else if(pacmanPos.y !=0 && world[pacmanPos.y-1][pacmanPos.x] != 1) {
+            else if(pacmanPos.y !=0 && world[pacmanPos.y-1][pacmanPos.x] != 0) {
                 pacmanPos.y -= 1;
             }
         }
         //Down movement
         else if(e.code === "ArrowDown") {
             document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-d.gif)";
-            if(pacmanPos.y == worldRows-1 && world[0][pacmanPos.x] != 1){
+            if(pacmanPos.y == worldRows-1 && world[0][pacmanPos.x] != 0){
                 pacmanPos.y = 0;
             }
-            else if(pacmanPos.y != worldRows-1 && world[pacmanPos.y+1][pacmanPos.x] != 1) {
+            else if(pacmanPos.y != worldRows-1 && world[pacmanPos.y+1][pacmanPos.x] != 0) {
                 pacmanPos.y += 1;
             }
         }
         
         //check if Pacman ate coin and add 10 points
         if(world[pacmanPos.y][pacmanPos.x] == 2) {
-            world[pacmanPos.y][pacmanPos.x] = 0;
+            world[pacmanPos.y][pacmanPos.x] = 1;
             score +=coinPoint;
         }
         //check if Pacman ate cherry and add 50 points
         else if(world[pacmanPos.y][pacmanPos.x] == 3) {
-            world[pacmanPos.y][pacmanPos.x] = 0;
+            world[pacmanPos.y][pacmanPos.x] = 1;
             score +=cherryPoint;
         }
         
@@ -196,12 +234,12 @@ function gameOver(){
         }   
         else{
             pacmanPos = {
-                x: 1,
-                y: 1
+                x: 2,
+                y: 2
             }
             ghostPos = {
-                x: worldRows - 2,
-                y: worldColumns - 2
+                x: Math.floor(worldRows/2),
+                y: Math.floor(worldColumns/2)
             }
             displayPacman();
         }
