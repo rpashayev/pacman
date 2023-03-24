@@ -1,0 +1,83 @@
+* {
+    outline: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+body {
+    background-color: black;
+    font-family: 'Roboto', sans-serif;
+}
+
+#container {
+    display: flex;
+    /* margin: 20px auto; */
+}
+
+#playZone{
+    padding: 20px;
+    border: 4px solid blue;
+}
+
+#finalText {
+    position: absolute;
+    top: 3rem;
+    left: 0.5rem;
+    font-size: 2em;
+    color: yellow;
+}
+
+.row {
+    height: 20px;
+}
+.row div {
+    width: 20px;
+    height: 100%;
+    display: inline-block;
+}
+
+.brick {
+    background-color: blue;
+}
+
+.coin, .cherry {
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.coin {
+    background-image: url("imgs/coin.gif");
+}
+
+.cherry {
+    background-image: url("imgs/cherry.png");
+}
+
+#pacman, #ghost {
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    position: absolute;
+}
+
+#pacman {
+    background-image: url("imgs/pacman-r.gif");
+}
+
+#ghost {
+    background-image: url("imgs/ghost-red.gif");
+}
+
+#pad {
+    margin-left: 40px;
+}
+
+.table {
+    height: 40px;
+    text-align: center;
+    padding: 0 20px;
+    border: 2px solid blue;
+    color: whitesmoke;
+}
