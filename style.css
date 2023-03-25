@@ -53,14 +53,14 @@ body {
     background-image: url("imgs/cherry.png");
 }
 
-#pacman, .ghost {
+.pacman, .ghost {
     width: 20px;
     height: 20px;
     background-size: contain;
     position: absolute;
 }
 
-#pacman {
+.pacman {
     background-image: url("imgs/pacman-r.gif");
 }
 

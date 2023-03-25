@@ -6,7 +6,10 @@ var worldDic = {
     4: "ghost"
 }
 
+var pacmanClass = document.getElementsByClassName("pacman");
 var ghostsClass = document.getElementsByClassName("ghost");
+var pacmanAll = document.querySelectorAll(".pacman");
+var ghostAll = document.querySelectorAll(".ghost");
 
 var step = 20;
 var score = 0;
@@ -24,10 +27,22 @@ var gameOverChk = setInterval(gameOver, gameSpeed/3);
 var bricksNum = Math.floor(worldColumns * worldRows * (1-0.20)); // bricks are 20% of the world
 var ghostNum = 3; //number of ghosts
 
-var pacmanPos = {
-    x: 2,
-    y: 2
-}
+var pacmanPos = [
+    {   
+        x_i: 2,
+        y_i: 2,
+        x: 2,
+        y: 2,
+        _class: pacmanClass[0]
+    },
+    {   
+        x_i: worldColumns-3,
+        y_i: 2, 
+        x: worldColumns-3,
+        y: 2,
+        _class: pacmanClass[1]
+    }
+]
 
 var ghostObj =[];
 for(var i=0; i<ghostNum; i++){
@@ -55,12 +70,12 @@ function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-//Prevent ghosts from mixing - vip
+//Prevent ghosts from mixing - wip
 function isMixing(g1, g2) {
-    return g1.x < g2.x + g2._class.clientWidth &&
-        g1.x + g1._class.clientWidth > g2.x &&
-        g1.y < g2.y + g2._class.clientHeight &&
-        g1.y + g1._class.clientHeight > g2.y;
+    return g1.x < g2.x &&
+        g1.x > g2.x &&
+        g1.y < g2.y &&
+        g1.y > g2.y;
 }
 
 function randomWorld() {        
@@ -111,7 +126,8 @@ function randomWorld() {
     world.push(border);//down border
     
     world[cherryPosX][cherryPosY] = 3; //Cherry position
-    world[pacmanPos.x][pacmanPos.y] = 1; //clear Pacman initial position
+    world[pacmanPos[0].y][pacmanPos[0].x] = 1; //clear Pacman initial position
+    world[pacmanPos[1].y][pacmanPos[1].x] = 1; //clear Pacman 2 initial position
 
     return world;
 }
@@ -134,8 +150,10 @@ function displayWorld() {
 }
 
 function displayPacman() {
-    document.getElementById("pacman").style.left = pacmanPos.x*step + "px";
-    document.getElementById("pacman").style.top = pacmanPos.y*step + "px";
+    for(var i=0; i<pacmanPos.length; i++){
+        pacmanPos[i]._class.style.left = pacmanPos[i].x*step + "px";
+        pacmanPos[i]._class.style.top = pacmanPos[i].y*step + "px";    
+    }
 }
 
 function ghostChase(){
@@ -151,7 +169,8 @@ function ghostChase(){
             if(next.y > worldRows-1 || next.y < 0 || world[next.y][next.x] == 0){
                 continue;
             }
-            var dist = Math.sqrt((next.x - pacmanPos.x)**2 + (next.y - pacmanPos.y)**2);
+
+            var dist = Math.sqrt((next.x - pacmanPos[0].x)**2 + (next.y - pacmanPos[0].y)**2);
             if (dist < bestDistance) {
                 bestMove = m;
                 bestDistance = dist;
@@ -170,60 +189,76 @@ displayWorld();
 displayPacman();
 ghostChase();
 
-document.addEventListener(
-    "keydown",
-    function(e){
-        //Left movement
-        if(e.code === "ArrowLeft" && world[pacmanPos.y][pacmanPos.x-1] != 0) {
-            document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-l.gif)";
-            if(pacmanPos.x == 0 && world[pacmanPos.y][worldColumns-1] != 0){
-                pacmanPos.x = worldColumns - 1;
-            }
-            else if (pacmanPos.x > 0){
-                pacmanPos.x -= 1;
-            }
+
+function movePacman(e, p){
+    //Left movement
+    if((e.code === "ArrowLeft" || e.code == "KeyA")  && world[pacmanPos[p].y][pacmanPos[p].x-1] != 0) {
+        pacmanPos[p]._class.style.backgroundImage = "url(imgs/pacman-l.gif)";
+        if(pacmanPos[p].x == 0 && world[pacmanPos[p].y][worldColumns-1] != 0){
+            pacmanPos[p].x = worldColumns - 1;
         }
-        //Right movement
-        else if(e.code === "ArrowRight" && world[pacmanPos.y][pacmanPos.x+1] != 0) {
-            document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-r.gif)";
-            if(pacmanPos.x == worldColumns-1 && world[pacmanPos.y][0] != 0){
-                pacmanPos.x = 0;
-            }
-            else if (pacmanPos.x < worldColumns-1){
-                pacmanPos.x += 1;
-            }
+        else if (pacmanPos[p].x > 0){
+            pacmanPos[p].x -= 1;
         }
-        //Up movement
-        else if(e.code === "ArrowUp") {
-            document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-u.gif)";
-            if(pacmanPos.y == 0 && world[worldRows-1][pacmanPos.x] != 0){
-                pacmanPos.y = worldRows-1;
-            }
-            else if(pacmanPos.y !=0 && world[pacmanPos.y-1][pacmanPos.x] != 0) {
-                pacmanPos.y -= 1;
-            }
+    }
+    //Right movement
+    else if((e.code === "ArrowRight" || e.code == "KeyD" ) && world[pacmanPos[p].y][pacmanPos[p].x+1] != 0) {
+        pacmanPos[p]._class.style.backgroundImage = "url(imgs/pacman-r.gif)";
+        if(pacmanPos[p].x == worldColumns-1 && world[pacmanPos[p].y][0] != 0){
+            pacmanPos[p].x = 0;
         }
-        //Down movement
-        else if(e.code === "ArrowDown") {
-            document.getElementById("pacman").style.backgroundImage = "url(imgs/pacman-d.gif)";
-            if(pacmanPos.y == worldRows-1 && world[0][pacmanPos.x] != 0){
-                pacmanPos.y = 0;
-            }
-            else if(pacmanPos.y != worldRows-1 && world[pacmanPos.y+1][pacmanPos.x] != 0) {
-                pacmanPos.y += 1;
-            }
+        else if (pacmanPos[p].x < worldColumns-1){
+            pacmanPos[p].x += 1;
         }
-        
-        //check if Pacman ate coin and add 10 points
-        if(world[pacmanPos.y][pacmanPos.x] == 2) {
-            world[pacmanPos.y][pacmanPos.x] = 1;
+    }
+    //Up movement
+    else if(e.code === "ArrowUp"  || e.code == "KeyW") {
+        pacmanPos[p]._class.style.backgroundImage =  "url(imgs/pacman-u.gif)";
+        if(pacmanPos[p].y == 0 && world[worldRows-1][pacmanPos[p].x] != 0){
+            pacmanPos[p].y = worldRows-1;
+        }
+        else if(pacmanPos[p].y !=0 && world[pacmanPos[p].y-1][pacmanPos[p].x] != 0) {
+            pacmanPos[p].y -= 1;
+        }
+    }
+    //Down movement
+    else if(e.code === "ArrowDown"  || e.code == "KeyS") {
+        pacmanPos[p]._class.style.backgroundImage = "url(imgs/pacman-d.gif)";
+        if(pacmanPos[p].y == worldRows-1 && world[0][pacmanPos[p].x] != 0){
+            pacmanPos[p].y = 0;
+        }
+        else if(pacmanPos[p].y != worldRows-1 && world[pacmanPos[p].y+1][pacmanPos[p].x] != 0) {
+            pacmanPos[p].y += 1;
+        }
+    }
+
+            //check if Pacman ate coin and add 10 points
+        if(world[pacmanPos[p].y][pacmanPos[p].x] == 2) {
+            world[pacmanPos[p].y][pacmanPos[p].x] = 1;
             score +=coinPoint;
         }
         //check if Pacman ate cherry and add 50 points
-        else if(world[pacmanPos.y][pacmanPos.x] == 3) {
-            world[pacmanPos.y][pacmanPos.x] = 1;
+        else if(world[pacmanPos[p].y][pacmanPos[p].x] == 3) {
+            world[pacmanPos[p].y][pacmanPos[p].x] = 1;
             score +=cherryPoint;
         }
+
+}
+
+var keyPressed = "keydown";
+
+document.addEventListener(
+    keyPressed,
+    function(e){
+        var p;
+        
+        if(e.code === "ArrowDown" || e.code === "ArrowUp" || e.code === "ArrowRight"|| e.code === "ArrowLeft") {
+            p = 0;
+        }
+        else {
+            p = 1;
+        }
+        movePacman(e, p);
         
         displayPacman();
         displayWorld();
@@ -238,30 +273,35 @@ function displayScore() {
 function gameOver(){
     // check if ghost caught Pacman 3 times
     for(ghost of ghostObj){
-        if(pacmanPos.y == ghost.y && pacmanPos.x == ghost.x){
-            life -= 1;
-            document.getElementById("lives").innerText = life;
-            if(life > 0){
-                pacmanPos = {
-                    x: 2,
-                    y: 2
+        for(pacman of pacmanPos){
+            if(pacman.y == ghost.y && pacman.x == ghost.x){
+                life -= 1;
+                document.getElementById("lives").innerText = life;
+                if(life > 0){
+                    for(pacman of pacmanPos){
+                        pacman.x = pacman.x_i;
+                        pacman.y = pacman.y_i;
+                    }
+
+                    for(ghost of ghostObj){
+                        ghost.x = ghost.x_i;
+                        ghost.y = ghost.y_i
+                    }
                 }
-                for(ghost of ghostObj){
-                    ghost.x = ghost.x_i;
-                    ghost.y = ghost.y_i
-                }
+                else{
+                    for (var i=0; i<ghostAll.length; i++) {
+                        ghostAll[i].parentNode.removeChild(ghostAll[i]);
+                    }
+                    for (var i=0; i<pacmanAll.length; i++) {
+                        pacmanAll[i].parentNode.removeChild(pacmanAll[i]);
+                    }
+                    document.getElementById("finalText").innerText = "GAME OVER";
+                    keyPressed = null;
+                    clearTimeout(intervalId);
+                    clearTimeout(gameOverChk);
+                }       
+                displayPacman();
             }
-            else{
-                for (var i=0; i<ghostsClass.length; i++) {
-                    ghostsClass[i].parentNode.removeChild(ghostsClass[i]);
-                }
-                document.getElementsByClassName("ghost").remove;
-                document.getElementById("finalText").innerText = "GAME OVER";
-                document.getElementById("pacman").remove();
-                clearTimeout(intervalId);
-                clearTimeout(gameOverChk);
-            }       
-            displayPacman();
         }
     }
     // check if Pacman ate all objects
