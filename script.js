@@ -27,7 +27,7 @@ var gameOverChk = setInterval(gameOver, gameSpeed/3);
 var bricksNum = Math.floor(worldColumns * worldRows * (1-0.20)); // bricks are 20% of the world
 var ghostNum = 3; //number of ghosts
 
-var pacmanPos = [
+var pacmanObj = [
     {   
         x_i: 2,
         y_i: 2,
@@ -126,8 +126,8 @@ function randomWorld() {
     world.push(border);//down border
     
     world[cherryPosX][cherryPosY] = 3; //Cherry position
-    world[pacmanPos[0].y][pacmanPos[0].x] = 1; //clear Pacman initial position
-    world[pacmanPos[1].y][pacmanPos[1].x] = 1; //clear Pacman 2 initial position
+    world[pacmanObj[0].y][pacmanObj[0].x] = 1; //clear Pacman initial position
+    world[pacmanObj[1].y][pacmanObj[1].x] = 1; //clear Pacman 2 initial position
 
     return world;
 }
@@ -150,17 +150,17 @@ function displayWorld() {
 }
 
 function displayPacman() {
-    for(var i=0; i<pacmanPos.length; i++){
-        pacmanPos[i]._class.style.left = pacmanPos[i].x*step + "px";
-        pacmanPos[i]._class.style.top = pacmanPos[i].y*step + "px";    
+    for(var i=0; i<pacmanObj.length; i++){
+        pacmanObj[i]._class.style.left = pacmanObj[i].x*step + "px";
+        pacmanObj[i]._class.style.top = pacmanObj[i].y*step + "px";    
     }
 }
 
 function ghostChase(){
     for(var ghost of ghostObj){
         var bestMove = 0, bestDistance = (worldColumns*worldRows)**2;
-    
-        moveFinder: for (var m of ghostMove) {
+
+        for (var m of ghostMove) {
             var next = {
                 x: ghost.x + m.dx,
                 y: ghost.y + m.dy
@@ -170,10 +170,12 @@ function ghostChase(){
                 continue;
             }
 
-            var dist = Math.sqrt((next.x - pacmanPos[0].x)**2 + (next.y - pacmanPos[0].y)**2);
-            if (dist < bestDistance) {
-                bestMove = m;
-                bestDistance = dist;
+            for(pacman of pacmanObj) {
+                var dist = Math.sqrt((next.x - pacman.x)**2 + (next.y - pacman.y)**2);
+                if (dist < bestDistance) {
+                    bestMove = m;
+                    bestDistance = dist;
+                }
             }
         }
         ghost.x += bestMove.dx;
@@ -192,79 +194,75 @@ ghostChase();
 
 function movePacman(e, p){
     //Left movement
-    if((e.code === "ArrowLeft" || e.code == "KeyA")  && world[pacmanPos[p].y][pacmanPos[p].x-1] != 0) {
-        pacmanPos[p]._class.style.backgroundImage = "url(imgs/pacman-l.gif)";
-        if(pacmanPos[p].x == 0 && world[pacmanPos[p].y][worldColumns-1] != 0){
-            pacmanPos[p].x = worldColumns - 1;
+    if((e.code === "ArrowLeft" || e.code == "KeyA")  && world[pacmanObj[p].y][pacmanObj[p].x-1] != 0) {
+        pacmanObj[p]._class.style.backgroundImage = "url(imgs/pacman-l.gif)";
+        if(pacmanObj[p].x == 0 && world[pacmanObj[p].y][worldColumns-1] != 0){
+            pacmanObj[p].x = worldColumns - 1;
         }
-        else if (pacmanPos[p].x > 0){
-            pacmanPos[p].x -= 1;
+        else if (pacmanObj[p].x > 0){
+            pacmanObj[p].x -= 1;
         }
     }
     //Right movement
-    else if((e.code === "ArrowRight" || e.code == "KeyD" ) && world[pacmanPos[p].y][pacmanPos[p].x+1] != 0) {
-        pacmanPos[p]._class.style.backgroundImage = "url(imgs/pacman-r.gif)";
-        if(pacmanPos[p].x == worldColumns-1 && world[pacmanPos[p].y][0] != 0){
-            pacmanPos[p].x = 0;
+    else if((e.code === "ArrowRight" || e.code == "KeyD" ) && world[pacmanObj[p].y][pacmanObj[p].x+1] != 0) {
+        pacmanObj[p]._class.style.backgroundImage = "url(imgs/pacman-r.gif)";
+        if(pacmanObj[p].x == worldColumns-1 && world[pacmanObj[p].y][0] != 0){
+            pacmanObj[p].x = 0;
         }
-        else if (pacmanPos[p].x < worldColumns-1){
-            pacmanPos[p].x += 1;
+        else if (pacmanObj[p].x < worldColumns-1){
+            pacmanObj[p].x += 1;
         }
     }
     //Up movement
     else if(e.code === "ArrowUp"  || e.code == "KeyW") {
-        pacmanPos[p]._class.style.backgroundImage =  "url(imgs/pacman-u.gif)";
-        if(pacmanPos[p].y == 0 && world[worldRows-1][pacmanPos[p].x] != 0){
-            pacmanPos[p].y = worldRows-1;
+        pacmanObj[p]._class.style.backgroundImage =  "url(imgs/pacman-u.gif)";
+        if(pacmanObj[p].y == 0 && world[worldRows-1][pacmanObj[p].x] != 0){
+            pacmanObj[p].y = worldRows-1;
         }
-        else if(pacmanPos[p].y !=0 && world[pacmanPos[p].y-1][pacmanPos[p].x] != 0) {
-            pacmanPos[p].y -= 1;
+        else if(pacmanObj[p].y !=0 && world[pacmanObj[p].y-1][pacmanObj[p].x] != 0) {
+            pacmanObj[p].y -= 1;
         }
     }
     //Down movement
     else if(e.code === "ArrowDown"  || e.code == "KeyS") {
-        pacmanPos[p]._class.style.backgroundImage = "url(imgs/pacman-d.gif)";
-        if(pacmanPos[p].y == worldRows-1 && world[0][pacmanPos[p].x] != 0){
-            pacmanPos[p].y = 0;
+        pacmanObj[p]._class.style.backgroundImage = "url(imgs/pacman-d.gif)";
+        if(pacmanObj[p].y == worldRows-1 && world[0][pacmanObj[p].x] != 0){
+            pacmanObj[p].y = 0;
         }
-        else if(pacmanPos[p].y != worldRows-1 && world[pacmanPos[p].y+1][pacmanPos[p].x] != 0) {
-            pacmanPos[p].y += 1;
+        else if(pacmanObj[p].y != worldRows-1 && world[pacmanObj[p].y+1][pacmanObj[p].x] != 0) {
+            pacmanObj[p].y += 1;
         }
     }
 
             //check if Pacman ate coin and add 10 points
-        if(world[pacmanPos[p].y][pacmanPos[p].x] == 2) {
-            world[pacmanPos[p].y][pacmanPos[p].x] = 1;
+        if(world[pacmanObj[p].y][pacmanObj[p].x] == 2) {
+            world[pacmanObj[p].y][pacmanObj[p].x] = 1;
             score +=coinPoint;
         }
         //check if Pacman ate cherry and add 50 points
-        else if(world[pacmanPos[p].y][pacmanPos[p].x] == 3) {
-            world[pacmanPos[p].y][pacmanPos[p].x] = 1;
+        else if(world[pacmanObj[p].y][pacmanObj[p].x] == 3) {
+            world[pacmanObj[p].y][pacmanObj[p].x] = 1;
             score +=cherryPoint;
         }
 
 }
 
-var keyPressed = "keydown";
-
-document.addEventListener(
-    keyPressed,
-    function(e){
-        var p;
-        
-        if(e.code === "ArrowDown" || e.code === "ArrowUp" || e.code === "ArrowRight"|| e.code === "ArrowLeft") {
-            p = 0;
-        }
-        else {
-            p = 1;
-        }
-        movePacman(e, p);
-        
-        displayPacman();
-        displayWorld();
-        displayScore();
+function keyDown(e, p){
+    
+    if(e.code === "ArrowDown" || e.code === "ArrowUp" || e.code === "ArrowRight"|| e.code === "ArrowLeft") {
+        p = 0; //move left Pacman
     }
-    )
+    else {
+        p = 1; //move right Pacman
+    }
+    movePacman(e, p);
+    
+    displayPacman();
+    displayWorld();
+    displayScore();
+}
+
+document.addEventListener("keydown", keyDown);
 
 function displayScore() {
     document.getElementById("score").innerText = score;
@@ -273,12 +271,13 @@ function displayScore() {
 function gameOver(){
     // check if ghost caught Pacman 3 times
     for(ghost of ghostObj){
-        for(pacman of pacmanPos){
+        for(pacman of pacmanObj){
             if(pacman.y == ghost.y && pacman.x == ghost.x){
+                
                 life -= 1;
                 document.getElementById("lives").innerText = life;
                 if(life > 0){
-                    for(pacman of pacmanPos){
+                    for(pacman of pacmanObj){
                         pacman.x = pacman.x_i;
                         pacman.y = pacman.y_i;
                     }
@@ -296,9 +295,10 @@ function gameOver(){
                         pacmanAll[i].parentNode.removeChild(pacmanAll[i]);
                     }
                     document.getElementById("finalText").innerText = "GAME OVER";
-                    keyPressed = null;
-                    clearTimeout(intervalId);
-                    clearTimeout(gameOverChk);
+                    document.getElementById("lives").innerText = "0";
+                    document.removeEventListener("keydown", keyDown);
+                    clearInterval(intervalId);
+                    clearInterval(gameOverChk);
                 }       
                 displayPacman();
             }
@@ -319,7 +319,7 @@ function gameOver(){
         }
         document.getElementById("finalText").innerText = "YOU WIN!";
         clearInterval(intervalId);
-        clearTimeout(gameOverChk);
+        clearInterval(gameOverChk);
     }
 }
 
