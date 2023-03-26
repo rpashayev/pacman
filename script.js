@@ -22,10 +22,13 @@ var path = 0;
 
 //Game settings
 var gameSpeed = 400;
+var brickPercents = 0.15;
+var ghostNum = 3; //number of ghosts
+var coinPoint = 10, cherryPoint = 50; //points
+var life = 3; //number of Pacman's lives
 var intervalId = setInterval(gameLoop, gameSpeed);
 var gameOverChk = setInterval(gameOver, gameSpeed/3);
-var bricksNum = Math.floor(worldColumns * worldRows * (1-0.20)); // bricks are 20% of the world
-var ghostNum = 3; //number of ghosts
+var bricksNum = Math.floor(worldColumns * worldRows * (1-brickPercents)); // bricks are 15% of the world
 
 var pacmanObj = [
     {   
@@ -62,9 +65,6 @@ var ghostMove = [
     {dx: 1, dy: 0}, // move right
 ]
 
-var coinPoint = 10, cherryPoint = 50; //points
-
-var life = 3; //number of Pacman's lives
 
 function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -72,10 +72,7 @@ function randInt(min, max) {
 
 //Prevent ghosts from mixing - wip
 function isMixing(g1, g2) {
-    return g1.x < g2.x &&
-        g1.x > g2.x &&
-        g1.y < g2.y &&
-        g1.y > g2.y;
+    return g1.x == g2.x && g1.y == g2.y;
 }
 
 function randomWorld() {        
@@ -166,10 +163,15 @@ function ghostChase(){
                 y: ghost.y + m.dy
             };
             
+            //check world border and bricks
             if(next.y > worldRows-1 || next.y < 0 || world[next.y][next.x] == 0){
                 continue;
             }
 
+            //avoid ghosts' overlapping - wip
+            
+
+            //check which pacman is closer and move towards him
             for(pacman of pacmanObj) {
                 var dist = Math.sqrt((next.x - pacman.x)**2 + (next.y - pacman.y)**2);
                 if (dist < bestDistance) {
